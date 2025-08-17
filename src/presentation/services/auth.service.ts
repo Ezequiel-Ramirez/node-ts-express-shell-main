@@ -1,4 +1,4 @@
-import { RegisterUserDto } from "../../domain";
+import { LoginUserDto, RegisterUserDto } from "../../domain";
 import { UserModel } from "../../data";
 import { CustomError } from "../../domain/errors/custom.error";
 import { bcryptAdapter } from "../../config";
@@ -29,11 +29,23 @@ export class AuthService {
 
     }
 
-    public loginUser() {
+    public async loginUser(loginUserDto: LoginUserDto) {
+        const user = await UserModel.findOne({ email: loginUserDto.email });
         
+        if (!user) throw new Error('User not found');   
+        
+        const isPasswordValid = bcryptAdapter.compare(loginUserDto.password, user.password);
+        
+        if (!isPasswordValid) throw new Error('Invalid password');
+        
+        const {password, ...rest} = user.toObject();
+        return {
+            user: rest,
+            token: 'token'
+            }
     }
 
-    public validateEmailUser() {
+    public async validateEmailUser(token: string) { 
         
     }
 }
